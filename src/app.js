@@ -5,12 +5,10 @@ const app = express();
 app.use(bodyParser.json());
 
 let id = 0;
-const db = [];
+let db = [];
 
-//all
 app.get('/', (req, res) => res.status(200).json(db));
 
-//insert
 app.post('/', (req, res) => {
     if (!('player' in req.body)) return res.status(400).json({ message: "Missing field 'player'!" });
     if (!('score' in req.body)) return res.status(400).json({ message: "Missing field 'score'!" });
@@ -24,6 +22,23 @@ app.post('/', (req, res) => {
     db.push(record);
     id++;
     return res.status(201).json(record)
+});
+
+app.delete('/', (req, res) => {
+    if (('wipe' in req.body)) {
+        db = [];
+        return res.sendStatus(204);
+    }
+    if (('id' in req.body)) {
+        const id = Number.parseInt(req.body.id);
+        const removed = db.splice(db.findIndex((r) => id === r.id), 1);
+        return res.status(204).json(removed)
+    }
+    if (('player' in req.body)) {
+        db = db.filter((r) => req.body.player !== r.player);
+        return res.sendStatus(204)
+    }
+    return res.status(400).json({ message: "Failed!" });
 });
 
 export default app;
