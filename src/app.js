@@ -5,9 +5,22 @@ import { MongoClient, ObjectId } from "mongodb";
 const app = express();
 
 app.use(bodyParser.json());
+app.set('trust proxy', true);
 
 const connectionString = process.env.DATABASE_URL;
 const [, db] = connectionString.match(/mongodb.net\/(.*)$/);
+
+app.get('/ip', (req, res) => {
+    const ip = (req.headers['x-forwarded-for'] || req.connection.remoteAddress || '').split(',').pop().trim();
+    const result = {
+        ['req-ip']: req.ip,
+        ['x-forwarded-for']: req.headers['x-forwarded-for'],
+        ['remoteAddress']: req.connection.remoteAddress,
+        ['req-ips']: req.ips,
+        ip
+    }
+    return res.status(200).json(result)
+});
 
 app.get('/', async (req, res) => {
     let client = null;
