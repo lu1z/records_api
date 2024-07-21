@@ -1,4 +1,4 @@
-import express from "express";
+import express, { json } from "express";
 import bodyParser from "body-parser";
 import { MongoClient, ObjectId } from "mongodb";
 
@@ -7,7 +7,7 @@ const app = express();
 app.use(bodyParser.json());
 app.set('trust proxy', true);
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL || 'mongodb.net/testEnviroment';
 const [, db] = connectionString.match(/mongodb.net\/(.*)$/);
 
 app.get('/ip', (req, res) => {
@@ -17,7 +17,17 @@ app.get('/ip', (req, res) => {
         ['x-forwarded-for']: req.headers['x-forwarded-for'],
         ['remoteAddress']: req.connection.remoteAddress,
         ['req-ips']: req.ips,
-        ip
+        ip,
+        ['remotePort']: req.connection.remotePort,
+        ['socket-remoteFamily']: req.socket.remoteFamily,
+        ['socket-remotePort']: req.socket.remotePort,
+        ['socket-remoteAddress']: req.socket.remoteAddress,
+        ['socket-localAddress']: req.socket.localAddress,
+        ['socket-localPort']: req.socket.localPort,
+        ['socket-localFamily']: req.socket.localFamily,
+        ['socket-boundTo']: JSON.stringify(req.socket.address()),
+        headers: JSON.stringify(req.headers),
+        // req: JSON.stringify(req),
     }
     return res.status(200).json(result)
 });
